@@ -1,32 +1,167 @@
 #:import dp kivy.metrics.dp
 
-<HomeScreen>:
+MDScreenManager:
+    NotesScreen:
+        name: 'notes'
+        MDBoxLayout:
+            orientation: "vertical"
+
+            # Toolbar
+            MDTopAppBar:
+                title: "My Notes"
+                md_bg_color: app.theme_cls.primaryColor
+                specific_text_color: 1, 1, 1, 1
+                elevation: 2
+                size_hint_y: None
+                height: dp(56)
+
+            # Notes grid
+            ScrollView:
+                effect_cls: "ScrollEffect"  # Remove overscroll glow
+                MDBoxLayout:
+                    orientation: "vertical"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: dp(16)
+                    spacing: dp(16)
+
+                    MDGridLayout:
+                        id: notes_grid
+                        cols: 2
+                        spacing: dp(16)
+                        size_hint_y: None
+                        height: self.minimum_height
+                        row_default_height: dp(160)
+                        col_default_width: dp(180)
+                        col_force_default: True
+
+            # Add note button
+            MDFabButton:
+                icon: "plus"
+                pos_hint: {"center_x": .9, "center_y": .1}
+                on_release: app.root.current = 'editor'
+
+	NoteEditorScreen:
+		name: 'editor'
+		MDBoxLayout:
+			orientation: "vertical"
+			spacing: dp(0)
+
+			# Custom header replacing MDToolbar
+			MDBoxLayout:
+				size_hint_y: None
+				height: dp(56)
+				md_bg_color: app.theme_cls.primaryColor
+				padding: dp(16), 0
+				spacing: dp(8)
+				MDIconButton:
+					icon: "menu"
+					md_bg_color: app.theme_cls.primaryColor
+					theme_icon_color: "Custom"
+					icon_color: 1, 1, 1, 1
+				MDLabel:
+					text: "Notepad"
+					font_style: "Title"
+					theme_text_color: "Custom"
+					text_color: 1, 1, 1, 1
+					valign: "middle"
+				Widget:
+					size_hint_x: 1
+
+			ScrollView:
+				MDGridLayout:
+					id: notes_grid
+					cols: 2
+					adaptive_height: True
+					padding: dp(12), dp(12)
+					spacing: dp(12)
+
+			MDFabButton:
+				icon: "plus"
+				style: "standard"
+				color_map: "secondary"
+				md_bg_color: app.theme_cls.primaryColor
+				pos_hint: {"right": 0.95, "y": 0.03}
+				on_press:
+					app.root.current = 'editor'
+
+
+<NoteCard@MDCard>:
+    orientation: "vertical"
+    size_hint: None, None
+    size: dp(180), dp(160)
+    padding: dp(16)
+    ripple_behavior: True
+    radius: dp(8)
+    elevation: 2
+    md_bg_color: 1, 1, 1, 1
+    spacing: dp(8)
+    on_release: app.open_note(self)
+
+    MDLabel:
+        text: root.title
+        font_style: "Title"
+        theme_text_color: "Primary"
+        size_hint_y: None
+        height: self.texture_size[1]
+        shorten: True
+        max_lines: 1
+
+    MDLabel:
+        text: root.content
+        font_style: "Body"
+        theme_text_color: "Secondary"
+        size_hint_y: None
+        height: self.texture_size[1]
+        shorten: True
+        max_lines: 3
+
+    MDIconButton:
+        icon: "dots-vertical"
+        size_hint: None, None
+        size: dp(32), dp(32)
+        pos_hint: {"right": 1}
+        on_press: app.open_note_menu(root)
+
+
+
+<NoteEditorScreen>:
 	MDBoxLayout:
-		orientation: "vertical"
+		orientation: 'vertical'
+		padding: dp(12)
+		spacing: dp(12)
 
-		MDToolbar:
-			id: toolbar
-			title: "Notepad"
-			elevation: 10
+		MDTopAppBar:
+			title: 'New Note'
+			left_action_items: [['arrow-left', lambda x: root.cancel()]]
 
-		TextInput:
-			id: editor
-			text: ""
-			size_hint_y: 1
-			multiline: True
-			font_size: "16sp"
-			padding: [16, 16, 16, 16]
-
-		AnchorLayout:
+		MDTextField:
+			id: title_field
+			hint_text: 'Title'
 			size_hint_y: None
-			height: dp(72)
-			anchor_x: "right"
-			anchor_y: "bottom"
+			height: dp(48)
 
-			MDFloatingActionButton:
-				icon: "content-save"
-				on_release: app.save_file()
+		MDTextField:
+			id: content_field
+			hint_text: 'Content'
+			multiline: True
+			size_hint_y: None
+			height: dp(200)
 
+		MDBoxLayout:
+			size_hint_y: None
+			height: dp(48)
+			spacing: dp(12)
 
-HomeScreen:
+			MDButton:
+				text: 'Cancel'
+				on_release: root.cancel()
+
+			MDButton:
+				text: 'Save'
+				on_release: root.save_note()
+
+	
+			
+
 
