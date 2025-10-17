@@ -1,0 +1,32 @@
+#:import dp kivy.metrics.dp
+
+<HomeScreen>:
+	MDBoxLayout:
+		orientation: "vertical"
+
+		MDToolbar:
+			id: toolbar
+			title: "Notepad"
+			elevation: 10
+
+		TextInput:
+			id: editor
+			text: ""
+			size_hint_y: 1
+			multiline: True
+			font_size: "16sp"
+			padding: [16, 16, 16, 16]
+
+		AnchorLayout:
+			size_hint_y: None
+			height: dp(72)
+			anchor_x: "right"
+			anchor_y: "bottom"
+
+			MDFloatingActionButton:
+				icon: "content-save"
+				on_release: app.save_file()
+
+
+HomeScreen:
+
