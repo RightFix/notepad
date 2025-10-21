@@ -15,7 +15,7 @@ class Main(MDApp):
     kv_file = None
     def build(self):
         self.theme_cls.primary_palette = "Blue"  # Use standard palette
-        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.theme_style = "Light"
         self.theme_cls.accent_palette = "Amber"
         return Builder.load_file("main.kv")
 
