@@ -1,23 +1,19 @@
 {
-{
-  "src": "build_files.sh",
-  "use": "@vercel/static-build",
-  "config": { "distDir": "static" }
-}
   "version": 2,
   "builds": [
     {
       "src": "bluesea_mobile/wsgi.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "15mb"
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.12"
       }
     },
     {
-      "src": "package.json",  // Optional if no Node deps; create empty if needed
+      "src": "build_files.sh",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "static"
+        "distDir": "staticfiles"
       }
     }
   ],
