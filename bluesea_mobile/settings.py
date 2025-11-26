@@ -262,12 +262,15 @@ LOGGING = {
 
 # Set to True only if you are okay with ANY domain accessing your backend 
 # (not recommended for production).
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 # Use the specific URL/port of your frontend development server
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5168",
     "http://127.0.0.1:8000",
+    "https://notepad-one-wheat.vercel.app",
+    "https://blueseaweb.vercel.app",
+
     # Add other local ports if needed, like Vue (8080) or Angular (4200)
 ]
 
