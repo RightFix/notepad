@@ -4,18 +4,19 @@
     {
       "src": "bluesea_mobile/wsgi.py",
       "use": "@vercel/python",
-      "config": { 
-        "maxLambdaSize": "30mb",
-        "runtime": "python3.12"
+      "config": {
+        "maxLambdaSize": "30mb"
       }
-    },
-    {
-      "src": "build_files.sh",
-      "use": "@vercel/static-build"
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/(.*)", "dest": "bluesea_mobile/wsgi.py" }
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "bluesea_mobile/wsgi.py"
+    }
   ]
 }
