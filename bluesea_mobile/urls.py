@@ -5,8 +5,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from django.conf import settings
 from django.conf.urls.static import static
 import debug_toolbar
-from django.conf import settings
-from django.urls import path
+
 from django.http import JsonResponse
 
 def handler404(request, exception=None):
