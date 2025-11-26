@@ -5,6 +5,19 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 from django.conf import settings
 from django.conf.urls.static import static
 import debug_toolbar
+from django.conf import settings
+from django.urls import path
+from django.http import JsonResponse
+
+def handler404(request, exception=None):
+    return JsonResponse({"detail": "Not found."}, status=404)
+
+def handler500(request):
+    return JsonResponse({"detail": "Server error."}, status=500)
+
+handler404 = handler404
+handler500 = handler500
+
 
 urlpatterns = [
     path('__debug__/', include('debug_toolbar.urls')),
@@ -25,6 +38,7 @@ urlpatterns = [
     path('market/', include('loyalty_market.urls')),
     path('user_preference/', include('user_preference.urls')),
     path('autotopup/', include('autotopup.urls')),
+   path("", lambda request: JsonResponse({"message": "Welcome to the API"})),
 ]
 
 if settings.DEBUG:
