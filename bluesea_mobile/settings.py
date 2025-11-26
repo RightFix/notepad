@@ -224,41 +224,43 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
         },
     },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
+        # ← Completely remove any "file" handler that writes to /var/task or anywhere else
+        # If you really want file logging, use /tmp (only survives one request anyway)
+        # "file": {
+        #     "class": "logging.FileHandler",
+        #     "filename": "/tmp/debug.log",   # only allowed writable path
+        #     "formatter": "verbose",
+        # },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'transactions': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
-
 
 # Set to True only if you are okay with ANY domain accessing your backend 
 # (not recommended for production).
