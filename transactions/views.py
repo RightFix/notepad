@@ -269,8 +269,8 @@ class InitializeFunding(APIView):
 
 
 class PaymentWebhook(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    #authentication_classes = []
+    #permission_classes = [AllowAny]
     def verify_signature(self, request):
         signature = request.headers.get('X-Paystack-Signature')
         if not signature:
