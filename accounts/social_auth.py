@@ -55,11 +55,11 @@ class GoogleAuth:
             
             logger.info(f"Successfully verified ID token for: {user_data['email']}")
             return True, user_data
-            
         except ValueError as e:
-            # Catch specific errors like token expired, audience mismatch, invalid signature
+            
             logger.error(f"Google ID token verification failed (ValueError): {str(e)}")
             return False, str(e)
+
         except Exception as e:
             logger.error(f"Unexpected error during Google ID token authentication.", exc_info=True)
             return False, "Authentication failed unexpectedly"
