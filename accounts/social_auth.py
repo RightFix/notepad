@@ -36,11 +36,12 @@ class GoogleAuth:
         Verifies the Google ID token and extracts user data.
         """
         try:
-            # 1. Verify the token signature and audience (aud)
+            # 1. Verify the token signature, expiry, and audience (aud)
+            # This line communicates with Google to verify the token's validity.
             idinfo = id_token.verify_oauth2_token(
                 token, 
                 google_requests.Request(), 
-                settings.GOOGLE_CLIENT_ID # Must match token audience
+                settings.GOOGLE_CLIENT_ID 
             )
             [attachment_0](attachment)
             
@@ -56,7 +57,8 @@ class GoogleAuth:
             return True, user_data
             
         except ValueError as e:
-            logger.error(f"ID token verification failed: {str(e)}")
+            # Catch specific errors like token expired, audience mismatch, invalid signature
+            logger.error(f"Google ID token verification failed (ValueError): {str(e)}")
             return False, str(e)
         except Exception as e:
             logger.error(f"Unexpected error during Google ID token authentication.", exc_info=True)
@@ -64,7 +66,11 @@ class GoogleAuth:
     
     @staticmethod
     def exchange_code_for_user_data(authorization_code: str, redirect_uri: str) -> Tuple[bool, str | Dict]:
-
+        """
+        🔐 Handles the traditional Authorization Code Flow (Server-side flow).
+        Exchanges the code for tokens and then verifies the resulting ID token.
+        (Included for completeness, but not used in your current view)
+        """
         TOKEN_URL = "https://oauth2.googleapis.com/token"
 
         try:
@@ -112,6 +118,7 @@ class GoogleAuth:
         except Exception as e:
             logger.error(f"Unexpected error during code exchange: {str(e)}", exc_info=True)
             return False, "Error exchanging authorization code"
+
             
 
 class AppleAuth:
