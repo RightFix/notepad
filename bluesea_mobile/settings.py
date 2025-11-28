@@ -272,6 +272,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://notepad-one-wheat.vercel.app",
     "https://blueseaweb.vercel.app",
+    "https://www.blueseamobile.com.ng",
 
     # Add other local ports if needed, like Vue (8080) or Angular (4200)
 ]
