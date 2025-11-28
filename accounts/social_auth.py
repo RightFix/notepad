@@ -9,133 +9,110 @@ import logging
 from accounts.models import Profile
 from wallet.models import Wallet
 from django.db import transaction as db_transaction
+from typing import Tuple, Optional, Dict
 
 logger = logging.getLogger(__name__)
 
 
+
 class GoogleAuth:
-    
+
     @staticmethod
-    def verify_google_token(token: str) -> Tuple[bool, Optional[Dict]]:
+    def _extract_user_data(idinfo: Dict) -> Dict:
+        """Helper to safely extract and format user data from verified ID token payload."""
+        return {
+            'email': idinfo.get('email'),
+            'email_verified': idinfo.get('email_verified', False),
+            'given_name': idinfo.get('given_name', ''),
+            'family_name': idinfo.get('family_name', ''),
+            'picture': idinfo.get('picture', ''),
+            'sub': idinfo.get('sub'), # Google's unique user ID
+        }
+
+    @staticmethod
+    def verify_id_token(token: str) -> Tuple[bool, str | Dict]:
         """
-        Verify Google ID token (Client-side flow)
-        Works for both web and mobile apps
-        Only requires GOOGLE_CLIENT_ID
+        🚀 Handles the modern ID Token flow (Client-side flow).
+        Verifies the Google ID token and extracts user data.
         """
         try:
-            # Verify the token
+            # 1. Verify the token signature and audience (aud)
             idinfo = id_token.verify_oauth2_token(
                 token, 
                 google_requests.Request(), 
-                settings.GOOGLE_CLIENT_ID
+                settings.GOOGLE_CLIENT_ID # Must match token audience
             )
+            [attachment_0](attachment)
             
-            # Verify the issuer
-            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-                logger.error("Invalid issuer")
+            # 2. Verify the issuer (iss)
+            if idinfo.get('iss') not in ['accounts.google.com', 'https://accounts.google.com']:
+                logger.error("Invalid issuer provided in token.")
                 return False, "Invalid token issuer"
             
-            # Extract user information
-            user_data = {
-                'email': idinfo.get('email'),
-                'email_verified': idinfo.get('email_verified', False),
-                'given_name': idinfo.get('given_name', ''),
-                'family_name': idinfo.get('family_name', ''),
-                'picture': idinfo.get('picture', ''),
-                'sub': idinfo.get('sub'),
-            }
+            # 3. Extract user data
+            user_data = GoogleAuth._extract_user_data(idinfo)
             
-            logger.info(f"Successfully verified Google token for email: {user_data['email']}")
+            logger.info(f"Successfully verified ID token for: {user_data['email']}")
             return True, user_data
             
         except ValueError as e:
-            logger.error(f"Google token verification failed: {str(e)}")
+            logger.error(f"ID token verification failed: {str(e)}")
             return False, str(e)
         except Exception as e:
-            logger.error(f"Unexpected error during Google authentication: {str(e)}")
-            return False, "Authentication failed"
+            logger.error(f"Unexpected error during Google ID token authentication.", exc_info=True)
+            return False, "Authentication failed unexpectedly"
     
     @staticmethod
-    def exchange_code_for_token(authorization_code: str, redirect_uri: str) -> Tuple[bool, Optional[Dict]]:
+    def exchange_code_for_user_data(authorization_code: str, redirect_uri: str) -> Tuple[bool, str | Dict]:
+
+        TOKEN_URL = "https://oauth2.googleapis.com/token"
 
         try:
-            # Token endpoint
-            token_url = "https://oauth2.googleapis.com/token"
+            client_secret = getattr(settings, 'GOOGLE_CLIENT_SECRET', None)
+            if not client_secret:
+                logger.error("GOOGLE_CLIENT_SECRET is not configured in settings.")
+                return False, "Server configuration error"
             
-            # Exchange code for tokens
+            # 1. Prepare data for token exchange
             token_data = {
                 'code': authorization_code,
                 'client_id': settings.GOOGLE_CLIENT_ID,
-                'client_secret': getattr(settings, 'GOOGLE_CLIENT_SECRET', None),
+                'client_secret': client_secret,
                 'redirect_uri': redirect_uri,
                 'grant_type': 'authorization_code'
             }
+            [attachment_1](attachment)
             
-            if not token_data['client_secret']:
-                logger.error("GOOGLE_CLIENT_SECRET is not configured")
-                return False, "Server configuration error"
-            
-            # Get access token
-            token_response = requests.post(token_url, data=token_data)
+            # 2. Get tokens from Google
+            token_response = requests.post(TOKEN_URL, data=token_data)
             
             if token_response.status_code != 200:
-                logger.error(f"Token exchange failed: {token_response.text}")
-                return False, "Failed to exchange authorization code"
+                error_detail = token_response.json().get('error_description', token_response.text)
+                logger.error(f"Token exchange failed (Code: {token_response.status_code}): {error_detail}")
+                return False, f"Failed to exchange authorization code: {error_detail}"
             
             tokens = token_response.json()
-            access_token = tokens.get('access_token')
             id_token_str = tokens.get('id_token')
             
-            # Option 1: Use the ID token (faster, already contains user info)
-            if id_token_str:
-                try:
-                    idinfo = id_token.verify_oauth2_token(
-                        id_token_str, 
-                        google_requests.Request(), 
-                        settings.GOOGLE_CLIENT_ID
-                    )
-                    
-                    user_data = {
-                        'email': idinfo.get('email'),
-                        'email_verified': idinfo.get('email_verified', False),
-                        'given_name': idinfo.get('given_name', ''),
-                        'family_name': idinfo.get('family_name', ''),
-                        'picture': idinfo.get('picture', ''),
-                        'sub': idinfo.get('sub'),
-                    }
-                    
-                    logger.info(f"Successfully exchanged code for user: {user_data['email']}")
-                    return True, user_data
-                except Exception as e:
-                    logger.warning(f"ID token verification failed, falling back to userinfo endpoint: {str(e)}")
-            
-            # Option 2: Fallback to userinfo endpoint
-            if access_token:
-                userinfo_response = requests.get(
-                    'https://www.googleapis.com/oauth2/v2/userinfo',
-                    headers={'Authorization': f'Bearer {access_token}'}
-                )
+            # 3. Verify the resulting ID Token
+            if not id_token_str:
+                return False, "Token exchange succeeded but no ID token was returned."
                 
-                if userinfo_response.status_code == 200:
-                    user_info = userinfo_response.json()
-                    user_data = {
-                        'email': user_info.get('email'),
-                        'email_verified': user_info.get('verified_email', False),
-                        'given_name': user_info.get('given_name', ''),
-                        'family_name': user_info.get('family_name', ''),
-                        'picture': user_info.get('picture', ''),
-                        'sub': user_info.get('id'),
-                    }
-                    
-                    logger.info(f"Successfully got user info for: {user_data['email']}")
-                    return True, user_data
+            # Reuse the dedicated verification logic for the received ID token
+            is_valid, data_or_error = GoogleAuth.verify_id_token(id_token_str)
             
-            return False, "Failed to get user information"
+            if not is_valid:
+                logger.error(f"ID Token received after exchange failed verification: {data_or_error}")
+                return False, f"Authentication failed after exchange: {data_or_error}"
+            
+            # Success: Return the verified user data
+            logger.info(f"Successfully exchanged code for user: {data_or_error.get('email')}")
+            return True, data_or_error
                 
         except Exception as e:
-            logger.error(f"Error exchanging authorization code: {str(e)}", exc_info=True)
-            return False, str(e)
-
+            logger.error(f"Unexpected error during code exchange: {str(e)}", exc_info=True)
+            return False, "Error exchanging authorization code"
+            
 
 class AppleAuth:
     

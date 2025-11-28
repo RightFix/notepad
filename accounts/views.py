@@ -341,8 +341,8 @@ class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
     
     @extend_schema(
-        summary="Google OAuth login",
-        description="Authenticate user using Google OAuth. Supports both ID token (client-side) and authorization code (server-side) flows.",
+        summary="Google ID Token login",
+        description="Authenticate user using the Google ID Token (client-side flow).",
         request=GoogleLoginSerializer,
         responses={
             200: OpenApiTypes.OBJECT,
@@ -353,14 +353,6 @@ class GoogleLoginView(APIView):
                 'ID Token Flow (Client-side)',
                 value={
                     "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
-                },
-                request_only=True
-            ),
-            OpenApiExample(
-                'Authorization Code Flow (Server-side)',
-                value={
-                    "authorization_code": "4/0AY0e-g7...",
-                    "redirect_uri": "http://localhost:3000/auth/callback"
                 },
                 request_only=True
             )
@@ -380,27 +372,12 @@ class GoogleLoginView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
+            # 1. Extract the ID Token (Only field remaining)
             id_token_val = serializer.validated_data.get('id_token')
-            authorization_code = serializer.validated_data.get('authorization_code')
-            redirect_uri = serializer.validated_data.get('redirect_uri')
             
-            # Determine which flow to use
-            if id_token_val:
-                # Client-side ID token flow
-                success, result = GoogleAuth.verify_google_token(id_token_val)
-                flow_type = "ID token"
-            elif authorization_code:
-                # Server-side authorization code flow
-                success, result = GoogleAuth.exchange_code_for_token(authorization_code, redirect_uri)
-                flow_type = "Authorization code"
-            else:
-                return Response(
-                    {
-                        "success": False,
-                        "message": "No authentication credentials provided"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+          
+            success, result = GoogleAuth.verify_id_token(id_token_val) 
+            flow_type = "ID token" # Explicitly define the flow
             
             if not success:
                 logger.error(f"Google authentication failed ({flow_type}): {result}")
@@ -413,7 +390,7 @@ class GoogleLoginView(APIView):
                     status=status.HTTP_401_UNAUTHORIZED
                 )
             
-            # Get or create user
+            # Get or create user (using the verified user data in 'result')
             user, is_new = get_or_create_social_user('google', result)
             
             # Generate JWT tokens
@@ -437,16 +414,8 @@ class GoogleLoginView(APIView):
                 status=status.HTTP_200_OK
             )
             
-        except ValueError as e:
-            logger.error(f"ValueError in Google login: {str(e)}")
-            return Response(
-                {
-                    "success": False,
-                    "message": str(e)
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
         except Exception as e:
+            # Catch all remaining errors, including potential errors during verification
             logger.error(f"Unexpected error in Google login: {str(e)}", exc_info=True)
             return Response(
                 {
@@ -456,6 +425,7 @@ class GoogleLoginView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+            
         
 
 class AppleLoginView(APIView):
