@@ -32,37 +32,37 @@ class GoogleAuth:
     @staticmethod
     def verify_id_token(token: str) -> Tuple[bool, str | Dict]:
         """
-        🚀 Handles the modern ID Token flow (Client-side flow).
-        Verifies the Google ID token and extracts user data.
+        Forces the specific Google verification error to be logged.
         """
         try:
-            # 1. Verify the token signature, expiry, and audience (aud)
-            # This line communicates with Google to verify the token's validity.
+            # 1. Verification Attempt
             idinfo = id_token.verify_oauth2_token(
                 token, 
                 google_requests.Request(), 
                 settings.GOOGLE_CLIENT_ID 
             )
-            [attachment_0](attachment)
             
             # 2. Verify the issuer (iss)
             if idinfo.get('iss') not in ['accounts.google.com', 'https://accounts.google.com']:
                 logger.error("Invalid issuer provided in token.")
                 return False, "Invalid token issuer"
             
-            # 3. Extract user data
+            # 3. Success (If no exception was raised)
             user_data = GoogleAuth._extract_user_data(idinfo)
-            
             logger.info(f"Successfully verified ID token for: {user_data['email']}")
             return True, user_data
-        except ValueError as e:
             
-            logger.error(f"Google ID token verification failed (ValueError): {str(e)}")
-            return False, str(e)
-
+        except ValueError as e:
+            # 🎯 CATCH 1: This is the most likely error (Audience, Expiry, etc.)
+            error_message = f"Google ID token validation failed: {str(e)}"
+            logger.error(error_message)
+            return False, error_message
+            
         except Exception as e:
-            logger.error(f"Unexpected error during Google ID token authentication.", exc_info=True)
-            return False, "Authentication failed unexpectedly"
+            # 🎯 CATCH 2: For any other unexpected error
+            error_message = "Authentication failed unexpectedly. Check dependencies or clock sync."
+            logger.error(f"Unexpected error during Google ID token authentication: {str(e)}", exc_info=True)
+            return False, wallet_error_message
     
     @staticmethod
     def exchange_code_for_user_data(authorization_code: str, redirect_uri: str) -> Tuple[bool, str | Dict]:
