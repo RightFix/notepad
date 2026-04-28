@@ -1,18 +1,10 @@
 [app]
 
-title = Notepad
+title = Keep Notes
 
-package.name = notepad
+package.name = keepnotes
 
-package.domain = org.rightfix
-
-source.dir = .
-
-source.include_exts = py,png,jpg,atlas
-
-source.include_patterns = assets/*,assets/*/*
-
-version = 0.1
+version = 0.2
 
 requirements = python3,kivy,pillow,android
 
