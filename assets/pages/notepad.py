@@ -229,7 +229,9 @@ class NotesScreen(Screen):
             text_size=(None, 30),
         )
         card.add_widget(title_label)
-        card.bind(width=lambda w, _: setattr(title_label, "text_size", (w - 24, 30)))
+        card.bind(
+            width=lambda w, _: setattr(title_label, "text_size", (w.width - 24, 30))
+        )
 
         content_text = note.get("content", "")
         content_label = Label(
@@ -243,7 +245,9 @@ class NotesScreen(Screen):
             text_size=(None, 40),
         )
         card.add_widget(content_label)
-        card.bind(width=lambda w, _: setattr(content_label, "text_size", (w - 24, 40)))
+        card.bind(
+            width=lambda w, _: setattr(content_label, "text_size", (w.width - 24, 40))
+        )
 
         actions = BoxLayout(size_hint_y=None, height=30, spacing=8)
 
