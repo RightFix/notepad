@@ -13,7 +13,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse, Line
 from kivy.core.window import Window
-from ..ui_custom import RoundedButton, RoundedTextInput
+from ..ui_custom import RoundedButton, RoundedTextInput,CustomBoxLayout
 
 
 NOTE_COLORS = {
@@ -89,7 +89,7 @@ class NotesScreen(Screen):
             self._bg_rect = Rectangle(size=Window.size, pos=(0, 0))
         Window.bind(on_resize=self._update_bg)
 
-        main_layout = BoxLayout(orientation="vertical")
+        main_layout = CustomBoxLayout(orientation="vertical")
         header = BoxLayout(orientation="vertical", size_hint_y=0.15)
         title_label = Label(
             text="[b]Note Pad[/b]",
