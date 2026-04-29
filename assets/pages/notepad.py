@@ -226,9 +226,10 @@ class NotesScreen(Screen):
             valign="top",
             size_hint_y=None,
             height=30,
-            text_size=(card.width - 24, 30),
+            text_size=(None, 30),
         )
         card.add_widget(title_label)
+        card.bind(width=lambda w, _: setattr(title_label, "text_size", (w - 24, 30)))
 
         content_text = note.get("content", "")
         content_label = Label(
@@ -239,12 +240,13 @@ class NotesScreen(Screen):
             valign="top",
             size_hint_y=None,
             height=40,
-            text_size=(card.width - 24, 40),
+            text_size=(None, 40),
         )
         card.add_widget(content_label)
+        card.bind(width=lambda w, _: setattr(content_label, "text_size", (w - 24, 40)))
 
         actions = BoxLayout(size_hint_y=None, height=30, spacing=8)
-        
+
         # edit_btn.bind(on_release=lambda x, n=note: self.open_note_editor(n))
         delete_btn = RoundedButton(
             text="Delete",
