@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+from kivy.metrics import dp, sp
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -13,7 +14,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Ellipse, Line
 from kivy.core.window import Window
-from ..ui_custom import RoundedButton, RoundedTextInput,CustomBoxLayout
+from ..ui_custom import RoundedButton, RoundedTextInput, CustomBoxLayout
 
 
 NOTE_COLORS = {
@@ -41,10 +42,10 @@ class NoteCard(BoxLayout):
         self.color_name = color_name
         self.timestamp = timestamp
         self.orientation = "vertical"
-        self.padding = 12
-        self.spacing = 5
+        self.padding = dp(12)
+        self.spacing = dp(5)
         self.size_hint_y = None
-        self.height = 120
+        self.height = dp(120)
         self.add_widget(Widget(size_hint_y=None, height=0))
 
 
@@ -94,7 +95,7 @@ class NotesScreen(Screen):
         title_label = Label(
             text="[b]Note Pad[/b]",
             markup=True,
-            font_size=26,
+            font_size=sp(26),
             halign="center",
             valign="center",
             color=self.ACCENT_COLOR,
@@ -104,25 +105,25 @@ class NotesScreen(Screen):
         main_layout.add_widget(header)
 
         self.search_container = BoxLayout(
-            size_hint_y=0.12, padding=[15, 5], size_hint_x=1
+            size_hint_y=0.12, padding=[dp(15), dp(5)], size_hint_x=1
         )
         self.search_input = RoundedTextInput(
             hint_text="Search notes...",
-            font_size=16,
+            font_size=sp(16),
             multiline=False,
             size_hint_y=1,
             size_hint_x=0.85,
-            height=50,
-            padding=[15, 15],
+            height=dp(50),
+            padding=[dp(15), dp(15)],
         )
         search_btn = RoundedButton(
             text="Search",
-            radius=8,
+            radius=dp(8),
             size_hint_x=0.15,
             size_hint_y=1,
-            height=50,
-            font_size=16,
-            padding=[0, 15],
+            height=dp(50),
+            font_size=sp(16),
+            padding=[0, dp(15)],
         )
         search_btn.bind(on_release=self.toggle_search)
         self.search_input.bind(text=self.filter_notes)
@@ -132,7 +133,7 @@ class NotesScreen(Screen):
 
         scroll = ScrollView(size_hint=(1, 1), do_scroll_x=False)
         self.notes_container = GridLayout(
-            cols=2, spacing=12, padding=[15, 10], size_hint_y=None
+            cols=2, spacing=dp(12), padding=[dp(15), dp(10)], size_hint_y=None
         )
         self.notes_container.bind(minimum_height=self.notes_container.setter("height"))
         scroll.add_widget(self.notes_container)
@@ -143,12 +144,12 @@ class NotesScreen(Screen):
         float_layout = FloatLayout()
         self.add_new_btn = RoundedButton(
             text="+",
-            radius=32,
+            radius=dp(32),
             btn_color=self.ACCENT_COLOR,
             size_hint=(None, None),
-            size=(65, 65),
+            size=(dp(65), dp(65)),
             pos_hint={"center_x": 0.9, "y": 0.06},
-            font_size=32,
+            font_size=sp(32),
         )
         self.add_new_btn.bind(on_release=self.open_note_editor)
         float_layout.add_widget(self.add_new_btn)
@@ -165,7 +166,7 @@ class NotesScreen(Screen):
             self.search_input.text = ""
             self.filter_notes()
         else:
-            self.search_container.height = 60
+            self.search_container.height = dp(60)
 
     def filter_notes(self, *args):
         self.refresh_notes_display()
@@ -190,7 +191,7 @@ class NotesScreen(Screen):
         if not filtered:
             empty_label = Label(
                 text="No notes yet\nTap + to create one!",
-                font_size=18,
+                font_size=sp(18),
                 color=(0.5, 0.5, 0.5, 1),
                 halign="center",
             )
@@ -208,7 +209,9 @@ class NotesScreen(Screen):
         bg_color = NOTE_COLORS.get(note.get("color", "white"), (1, 1, 1, 1))
         with card.canvas.before:
             Color(*bg_color)
-            card.bg_rect = RoundedRectangle(size=card.size, pos=card.pos, radius=[12])
+            card.bg_rect = RoundedRectangle(
+                size=card.size, pos=card.pos, radius=[dp(12)]
+            )
 
         card.bind(pos=self.update_card_rect, size=self.update_card_rect)
         card.bind(
@@ -219,46 +222,50 @@ class NotesScreen(Screen):
 
         title_label = Label(
             text=note.get("title", "Untitled"),
-            font_size=16,
+            font_size=sp(16),
             bold=True,
             color=(0.2, 0.2, 0.25, 1),
             halign="left",
             valign="top",
             size_hint_y=None,
-            height=30,
-            text_size=(None, 30),
+            height=dp(30),
+            text_size=(None, dp(30)),
         )
         card.add_widget(title_label)
         card.bind(
-            width=lambda w, _: setattr(title_label, "text_size", (w.width - 24, 30))
+            width=lambda w, _: setattr(
+                title_label, "text_size", (w.width - dp(24), dp(30))
+            )
         )
 
         content_text = note.get("content", "")
         content_label = Label(
             text=content_text[:80] + "..." if len(content_text) > 80 else content_text,
-            font_size=14,
+            font_size=sp(14),
             color=(0.3, 0.3, 0.35, 1),
             halign="left",
             valign="top",
             size_hint_y=None,
-            height=40,
-            text_size=(None, 40),
+            height=dp(40),
+            text_size=(None, dp(40)),
         )
         card.add_widget(content_label)
         card.bind(
-            width=lambda w, _: setattr(content_label, "text_size", (w.width - 24, 40))
+            width=lambda w, _: setattr(
+                content_label, "text_size", (w.width - dp(24), dp(40))
+            )
         )
 
-        actions = BoxLayout(size_hint_y=None, height=30, spacing=8)
+        actions = BoxLayout(size_hint_y=None, height=dp(30), spacing=dp(8))
 
         # edit_btn.bind(on_release=lambda x, n=note: self.open_note_editor(n))
         delete_btn = RoundedButton(
             text="Delete",
-            radius=6,
+            radius=dp(6),
             btn_color=(0.9, 0.3, 0.3, 0.15),
             size_hint_x=None,
-            width=70,
-            font_size=14,
+            width=dp(70),
+            font_size=sp(14),
             color=(0.9, 0.3, 0.3, 1),
         )
         delete_btn.bind(on_release=lambda x, n=note: self.delete_note(n))
@@ -285,36 +292,36 @@ class NotesScreen(Screen):
             self.show_editorScreen()
 
     def show_editorScreen(self, existing_note=None):
-        editor = BoxLayout(orientation="vertical", padding=20, spacing=15)
+        editor = BoxLayout(orientation="vertical", padding=dp(20), spacing=dp(15))
         with editor.canvas.before:
             Color(0.95, 0.95, 0.98, 1)
             editor._bg_rect = RoundedRectangle(
-                size=editor.size, pos=editor.pos, radius=[20]
+                size=editor.size, pos=editor.pos, radius=[dp(20)]
             )
         editor.bind(
             pos=lambda w, *_: setattr(w._bg_rect, "pos", w.pos),
             size=lambda w, *_: setattr(w._bg_rect, "size", w.size),
         )
 
-        editor_header = BoxLayout(size_hint_y=None, height=50)
+        editor_header = BoxLayout(size_hint_y=None, height=dp(50))
         editor_header.add_widget(Widget())
         cancel_btn = RoundedButton(
             text="Cancel",
-            radius=8,
+            radius=dp(8),
             btn_color=(0.6, 0.6, 0.6, 1),
             size_hint_x=None,
-            width=100,
-            font_size=16,
+            width=dp(100),
+            font_size=sp(16),
         )
         cancel_btn.bind(on_release=self.close_editor)
         editor_header.add_widget(cancel_btn)
         save_btn = RoundedButton(
             text="Save",
-            radius=8,
+            radius=dp(8),
             btn_color=self.ACCENT_COLOR,
             size_hint_x=None,
-            width=100,
-            font_size=16,
+            width=dp(100),
+            font_size=sp(16),
         )
         save_btn.bind(on_release=lambda x: self.save_note_from_editor(existing_note))
         editor_header.add_widget(save_btn)
@@ -322,22 +329,22 @@ class NotesScreen(Screen):
 
         title_input = RoundedTextInput(
             hint_text="Title",
-            font_size=22,
+            font_size=sp(22),
             multiline=False,
             size_hint_y=None,
-            height=55,
+            height=dp(55),
             text=existing_note.get("title", "") if existing_note else "",
-            padding=[15, 0],
+            padding=[dp(15), 0],
         )
         self._editor_title = title_input
         editor.add_widget(title_input)
 
         content_input = RoundedTextInput(
             hint_text="Write your note here...",
-            font_size=18,
+            font_size=sp(18),
             multiline=True,
             text=existing_note.get("content", "") if existing_note else "",
-            padding=[15, 15],
+            padding=[dp(15), dp(15)],
         )
         self._editor_content = content_input
         editor.add_widget(content_input)
