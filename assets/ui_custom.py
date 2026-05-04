@@ -54,7 +54,7 @@ class CustomBoxLayout(BoxLayout):
         super().__init__(**kwargs)
         self.background_normal = ""
         self.background_active = ""
-        self.padding = (dp(15), dp(10))
+        self.padding = (dp(5), dp(10))
         with self.canvas.before:
             Color(*bg_color)
             self._bg_rect = RoundedRectangle(

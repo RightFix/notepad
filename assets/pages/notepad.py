@@ -190,7 +190,7 @@ class NotesScreen(Screen):
             self.notes_container.add_widget(card)
         if not filtered:
             empty_label = Label(
-                text="No notes yet\nTap + to create one!",
+                text="\n\n\n\n No notes yet\nTap + to create one!",
                 font_size=sp(18),
                 color=(0.5, 0.5, 0.5, 1),
                 halign="center",
